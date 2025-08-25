@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::fs;
+use http::Method;
 use toml;
 use serde::{Deserialize, Serialize};
 use anyhow::bail;
@@ -39,6 +40,18 @@ pub struct Config {
     pub target: Target,
     pub scenarios: HashMap<String, Scenario>,
     pub timings: Timings,
+}
+
+impl From<HttpMethod> for Method {
+    fn from(method: HttpMethod) -> Self {
+        match method {
+            HttpMethod::GET => Method::GET,
+            HttpMethod::POST => Method::POST,
+            HttpMethod::PUT => Method::PUT,
+            HttpMethod::DELETE => Method::DELETE,
+            HttpMethod::PATCH => Method::PATCH,
+        }
+    }
 }
 
 impl Config {

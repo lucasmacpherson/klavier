@@ -1,10 +1,9 @@
-use reqwest::{header::{HeaderMap, HeaderName, HeaderValue}, Client as HttpClient};
+use reqwest::Client as HttpClient;
 use std::sync::Arc;
 
-use crate::config::{Config, Scenario};
-use crate::scenarios::{ScenarioCache};
+use crate::config::{Config};
+use crate::scenarios::{CachedScenario, ScenarioCache};
 
-#[derive(Debug, Clone)]
 pub struct Client {
     config: Arc<Config>,
     http_client: HttpClient,
@@ -13,34 +12,42 @@ pub struct Client {
 
 #[derive(Debug, Clone)]
 pub struct RequestResult {
-    pub status: u32,
+    pub status: u16,
     pub body: String,
     pub response_time: u64,
 }
 
 impl Client {
-    pub fn build_client(config: Arc<Config>, http_client: HttpClient) -> Client {
-        Client {
-            config: config,
+    pub fn build_client(config: Arc<Config>, http_client: HttpClient) -> Result<Client, anyhow::Error> {
+        Ok (Self {
+            config: config.clone(),
             http_client: http_client,
-            scenario_cache: ScenarioCache,
-        }
-    } 
-    
-    fn send_request(&self, scenario: Scenario) -> Result<(), anyhow::Error> {
-        let mut headers: HeaderMap = HeaderMap::new();
-        for (key, val) in scenario.headers {
-            let header_name = HeaderName::from_bytes(key.as_bytes())?;
-            let header_value = HeaderValue::from_bytes(val.as_bytes())?;
-            headers.insert(header_name, header_value);
-        }
-
-
-        Ok(())
+            scenario_cache: ScenarioCache::from_confg(config)?,
+        })
     }
+    
+    pub async fn run_next_scenario(&mut self) -> Result<RequestResult, anyhow::Error> {
+        let scenario: &CachedScenario = self.scenario_cache.get_next_scenario();
+       // build request for the next scenario
+        let mut request = self.http_client
+            .request(scenario.method.clone(), &scenario.url)
+            .headers(scenario.headers.clone());
+            
+        if let Some(body_bytes) = &scenario.body {
+            request = request.body(body_bytes.clone())
+        }
 
-    pub fn run_next_scenario(&self) {
-        let scenario: &Scenario = self.scenario_cache.get_next_scenario();
+        // Output url
+        println!("Sending request to {}:{}", &scenario.method, &scenario.url);
+        // Start timer for response and send request
+        let response = request.send().await?;
          
+        let interval_ms = self.config.timings.base_request_interval_ms;
+
+        Ok(RequestResult { 
+            status: response.status().as_u16(),
+            body: response.text().await?,
+            response_time: interval_ms.into(),
+        })
     }
 }
