@@ -21,7 +21,7 @@ async fn main() -> Result<(), anyhow::Error> {
     let mut client: Client = Client::build_client(Arc::new(test_config), http_client)?;
 
     let mut idx = 0;
-    while idx < 100 {
+    while idx < 1000 {
         let result: RequestResult = client.run_next_scenario().await?;
         println!("Status: {} | Response: {}", &result.status, &result.body);
         idx += 1;

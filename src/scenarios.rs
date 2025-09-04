@@ -46,7 +46,7 @@ impl CachedScenario {
 }
 
 impl ScenarioCache {
-    pub fn from_confg(config: Arc<Config>) -> Result<ScenarioCache, anyhow::Error> {
+    pub fn from_config(config: Arc<Config>) -> Result<ScenarioCache, anyhow::Error> {
         let mut scenario_pool: Vec<CachedScenario> = Vec::new();
         
         // Create flat weighted distribution of scenarios

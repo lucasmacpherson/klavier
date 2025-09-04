@@ -22,7 +22,7 @@ impl Client {
         Ok (Self {
             config: config.clone(),
             http_client: http_client,
-            scenario_cache: ScenarioCache::from_confg(config)?,
+            scenario_cache: ScenarioCache::from_config(config)?,
         })
     }
     
