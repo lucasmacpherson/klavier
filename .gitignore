@@ -24,4 +24,6 @@ target
 #.idea/
 
 # Stress testing profiles
-profiles
+profiles/*
+!profiles/example.toml
+
