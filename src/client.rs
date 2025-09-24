@@ -1,5 +1,6 @@
 use reqwest::Client as HttpClient;
 use std::sync::Arc;
+use std::time::Instant;
 
 use crate::config::{Config};
 use crate::scenarios::{CachedScenario, ScenarioCache};
@@ -14,7 +15,7 @@ pub struct Client {
 pub struct RequestResult {
     pub status: u16,
     pub body: String,
-    pub response_time: u64,
+    pub response_time: u128,
 }
 
 impl Client {
@@ -37,17 +38,16 @@ impl Client {
             request = request.body(body_bytes.clone())
         }
 
-        // Output url
         println!("Sending request to {}:{}", &scenario.method, &scenario.url);
         // Start timer for response and send request
+        let start = Instant::now();
         let response = request.send().await?;
-         
-        let interval_ms = self.config.timings.base_request_interval_ms;
-
+        let duration_ms = start.elapsed().as_millis();
+        
         Ok(RequestResult { 
             status: response.status().as_u16(),
             body: response.text().await?,
-            response_time: interval_ms.into(),
+            response_time: duration_ms,
         })
     }
 }
