@@ -3,15 +3,17 @@ base_url = "https://api.example.com"
 
 [scenarios]
 [scenarios.health_check]
+weight = 5
+[[scenarios.health_check.requests]]
 method = "GET"
 path = "/api/health"
-weight = 5
 headers = {"User-Agent" = "Klavier/1.0"}
 
 [scenarios.login]
+weight = 1
+[[scenarios.login.requests]]
 method = "GET"
 path = "/api/auth/login"
-weight = 1
 headers = {"User-Agent" = "Klavier/1.0"}
 
 [timings]

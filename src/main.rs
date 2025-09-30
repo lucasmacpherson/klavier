@@ -1,14 +1,19 @@
 use std::env;
 use std::sync::Arc;
 
+use anyhow::{bail, Error};
 use reqwest::Client as HttpClient;
 
 use klavier::config::Config;
 use klavier::client::{Client, RequestResult};
 
 #[tokio::main]
-async fn main() -> Result<(), anyhow::Error> {
+async fn main() -> Result<(), Error> {
     let args: Vec<String> = env::args().collect();
+    if args.len() < 2 {
+        bail!("Please provide a profile path (e.g. profiles/example.toml)")
+    }
+
     let test_config = Config::from_filepath(&args[1])?;
 
     let base_url: &String = &test_config.target.base_url;
@@ -24,8 +29,10 @@ async fn main() -> Result<(), anyhow::Error> {
 
     let mut idx = 0;
     while idx < 1000 {
-        let result: RequestResult = client.run_next_scenario().await?;
-        println!("Status: {} | Response: {} | Response Time: {}ms", &result.status, &result.body, &result.response_time);
+        let results: Vec<RequestResult> = client.run_next_scenario().await?;
+        for result in results {
+            println!("Status: {} | Response: {} | Response Time: {}ms", &result.status, &result.body, &result.response_time);
+        }
         idx += 1;
     }
 

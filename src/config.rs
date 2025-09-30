@@ -3,7 +3,7 @@ use std::fs;
 use http::Method;
 use toml;
 use serde::{Deserialize, Serialize};
-use anyhow::bail;
+use anyhow::{bail, Error};
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Target {
@@ -20,13 +20,18 @@ pub enum HttpMethod {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct Scenario {
+pub struct Request {
     pub method: HttpMethod,
     pub path: String,
-    pub weight: u32,
     #[serde(default)]
     pub headers: HashMap<String, String>,
     pub body: Option<String>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct Scenario {
+    pub weight: u32,
+    pub requests: Vec<Request>
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -55,7 +60,7 @@ impl From<HttpMethod> for Method {
 }
 
 impl Config {
-    pub fn validate(&self) -> Result<(), anyhow::Error> {
+    pub fn validate(&self) -> Result<(), Error> {
         // Validate the base URL is defined correctly
         if self.target.base_url.is_empty() || !self.target.base_url.starts_with("http") {
             bail!("A target base_url must be defined and begin with http:// or https://")
@@ -68,7 +73,7 @@ impl Config {
         Ok(())
     }
 
-    pub fn from_filepath(filepath: &str) -> Result<Config, anyhow::Error> {
+    pub fn from_filepath(filepath: &str) -> Result<Config, Error> {
         let content: String = fs::read_to_string(filepath)?;
         let config: Config = toml::from_str(&content)?;
         config.validate()?;
