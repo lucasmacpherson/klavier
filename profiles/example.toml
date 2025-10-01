@@ -17,6 +17,6 @@ path = "/api/auth/login"
 headers = {"User-Agent" = "Klavier/1.0"}
 
 [timings]
-base_request_interval_ms = 1000
 test_duration_seconds = 60
+min_scenario_interval_ms = 1000
 

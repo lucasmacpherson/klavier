@@ -36,8 +36,8 @@ pub struct Scenario {
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Timings {
-    pub base_request_interval_ms: u32,
     pub test_duration_seconds: u64,
+    pub min_scenario_interval_ms: u32,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]

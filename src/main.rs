@@ -5,7 +5,7 @@ use anyhow::{bail, Error};
 use reqwest::Client as HttpClient;
 
 use klavier::config::Config;
-use klavier::client::{Client, RequestResult};
+use klavier::client::Client;
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
@@ -26,14 +26,10 @@ async fn main() -> Result<(), Error> {
     .build()?;
 
     let mut client: Client = Client::build_client(Arc::new(test_config), http_client)?;
+    let results = client.run().await?;
 
-    let mut idx = 0;
-    while idx < 1000 {
-        let results: Vec<RequestResult> = client.run_next_scenario().await?;
-        for result in results {
-            println!("Status: {} | Response: {} | Response Time: {}ms", &result.status, &result.body, &result.response_time);
-        }
-        idx += 1;
+    for result in results {
+        println!("Status: {} | Response: {} | Response Time: {}ms", &result.status, &result.body, &result.response_time);
     }
 
     Ok(())
