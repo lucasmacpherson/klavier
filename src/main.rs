@@ -19,12 +19,7 @@ async fn main() -> Result<(), Error> {
     let base_url: &String = &test_config.target.base_url;
     println!("Loaded config with base_url: {}", base_url);
 
-    let http_client = HttpClient::builder()
-    .pool_max_idle_per_host(100)     // Much higher for localhost
-    .pool_idle_timeout(None)         // Keep connections alive
-    .tcp_nodelay(true)               // Reduce local latency
-    .build()?;
-
+    
     let mut client: Client = Client::build_client(Arc::new(test_config), http_client)?;
     let results = client.run().await?;
 
