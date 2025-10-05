@@ -4,7 +4,7 @@ use anyhow::Error;
 use bytes::Bytes;
 
 use http::{HeaderMap, HeaderName, HeaderValue, Method};
-use rand::{rngs::ThreadRng, Rng};
+use rand::{rngs::StdRng, Rng, SeedableRng};
 use crate::config::{Config, Request, Scenario};
 
 #[derive(Debug, Clone)]
@@ -22,7 +22,7 @@ pub struct RuntimeScenario {
 
 #[derive(Debug, Clone)]
 pub struct ScenarioPool {
-    rng: ThreadRng,
+    rng: StdRng,
     scenario_pool: Vec<RuntimeScenario>,
 }
 
@@ -68,7 +68,7 @@ impl ScenarioPool {
             }
         }
         
-        Ok(Self { rng: rand::rng(), scenario_pool})
+        Ok(Self { rng: StdRng::from_os_rng(), scenario_pool})
     }
 
     pub fn get_next_scenario(&mut self) -> &RuntimeScenario {
