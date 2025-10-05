@@ -15,7 +15,7 @@ pub struct Client {
 }
 
 impl Client {
-    pub fn build_client(config: Arc<Config>, http_client: HttpClient) -> Result<Client, Error> {
+    pub fn new(config: Arc<Config>, http_client: HttpClient) -> Result<Client, Error> {
         Ok (Self {
             http_client: http_client,
             config_timings: config.timings.clone(),
@@ -23,7 +23,7 @@ impl Client {
         })
     }
 
-    pub async fn run(&mut self) -> Result<Vec<RequestResult>, Error> {
+    pub async fn run(mut self) -> Result<Vec<RequestResult>, Error> {
         let mut results = Vec::new();
 
         // Start timer for testing profile
