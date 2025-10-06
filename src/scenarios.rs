@@ -3,9 +3,9 @@ use std::sync::Arc;
 use anyhow::Result;
 use bytes::Bytes;
 
-use http::{HeaderMap, HeaderName, HeaderValue, Method};
-use rand::{rngs::StdRng, Rng, SeedableRng};
 use crate::config::{Config, Request, Scenario};
+use http::{HeaderMap, HeaderName, HeaderValue, Method};
+use rand::{Rng, SeedableRng, rngs::StdRng};
 
 #[derive(Debug, Clone)]
 pub struct RuntimeRequest {
@@ -40,18 +40,26 @@ impl RuntimeRequest {
         }
 
         // Parse body optional if value exists
-        let body = request.body.map(|json_str| Bytes::from(json_str.into_bytes()));
-        Ok(Self { method, url, headers, body })
+        let body = request
+            .body
+            .map(|json_str| Bytes::from(json_str.into_bytes()));
+        Ok(Self {
+            method,
+            url,
+            headers,
+            body,
+        })
     }
 }
 
 impl RuntimeScenario {
     pub fn new(scenario: Scenario, base_url: &str) -> Result<Self> {
-        let requests = scenario.requests
+        let requests = scenario
+            .requests
             .into_iter()
             .map(|request| RuntimeRequest::new(request, base_url))
             .collect::<Result<Vec<_>, _>>()?;
-            // Using '_' to infer type <Result<Vec<RuntimeRequest>, anyhow::Error>>
+        // Using '_' to infer type <Result<Vec<RuntimeRequest>, anyhow::Error>>
         Ok(Self { requests })
     }
 }
@@ -59,7 +67,7 @@ impl RuntimeScenario {
 impl ScenarioPool {
     pub fn from_config(config: Arc<Config>) -> Result<Self> {
         let mut scenario_pool: Vec<RuntimeScenario> = Vec::new();
-        
+
         // Create flat weighted distribution of scenarios
         for scenario in config.scenarios.values() {
             let runtime_scenario = RuntimeScenario::new(scenario.clone(), &config.target.base_url)?;
@@ -67,8 +75,11 @@ impl ScenarioPool {
                 scenario_pool.push(runtime_scenario.clone());
             }
         }
-        
-        Ok(Self { rng: StdRng::from_os_rng(), scenario_pool})
+
+        Ok(Self {
+            rng: StdRng::from_os_rng(),
+            scenario_pool,
+        })
     }
 
     pub fn get_next_scenario(&mut self) -> &RuntimeScenario {

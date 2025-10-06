@@ -1,9 +1,9 @@
+use anyhow::{Context, Result, bail};
+use http::Method;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
-use http::Method;
 use toml;
-use serde::{Deserialize, Serialize};
-use anyhow::{bail, Context, Result};
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Target {
@@ -31,7 +31,7 @@ pub struct Request {
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Scenario {
     pub weight: u32,
-    pub requests: Vec<Request>
+    pub requests: Vec<Request>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -65,7 +65,7 @@ impl Config {
         if self.target.base_url.is_empty() || !self.target.base_url.starts_with("http") {
             bail!("A target base_url must be defined and begin with http:// or https://")
         }
-        
+
         // Ensure at least one scenario has been defined
         if self.scenarios.is_empty() {
             bail!("At least one scenario must be defined")
@@ -76,8 +76,12 @@ impl Config {
     pub fn from_filepath(filepath: &str) -> Result<Config> {
         let content: String = fs::read_to_string(filepath)
             .with_context(|| format!("Failed to read file at {}", filepath))?;
-        let config: Config = toml::from_str(&content)
-            .with_context(|| format!("File at {} is not a valid config! See example.toml", filepath))?;
+        let config: Config = toml::from_str(&content).with_context(|| {
+            format!(
+                "File at {} is not a valid config! See example.toml",
+                filepath
+            )
+        })?;
         config.validate()?;
         Ok(config)
     }
