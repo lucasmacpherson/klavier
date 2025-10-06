@@ -34,8 +34,8 @@ async fn main() -> Result<()> {
         println!("Client {} Results", client_id);
         for result in results.get_client_results(client_id)? {
             println!(
-                "Request: {} | Status: {} | Response Time: {}ms",
-                &result.request_url, &result.status, &result.response_time
+                "- Request: {} | Status: {} | Response Time: {}ms \n  Response body: {}",
+                &result.request_url, &result.status, &result.response_time, &result.body
             );
         }
     }
