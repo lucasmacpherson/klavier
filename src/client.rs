@@ -1,4 +1,4 @@
-use anyhow::Error;
+use anyhow::Result;
 use reqwest::Client as HttpClient;
 use tokio::time::sleep;
 use std::sync::Arc;
@@ -15,7 +15,7 @@ pub struct Client {
 }
 
 impl Client {
-    pub fn new(config: Arc<Config>, http_client: HttpClient) -> Result<Client, Error> {
+    pub fn new(config: Arc<Config>, http_client: HttpClient) -> Result<Client> {
         Ok (Self {
             http_client: http_client,
             config_timings: config.timings.clone(),
@@ -23,7 +23,7 @@ impl Client {
         })
     }
 
-    pub async fn run(mut self) -> Result<Vec<RequestResult>, Error> {
+    pub async fn run(mut self) -> Result<Vec<RequestResult>> {
         let mut results = Vec::new();
 
         // Start timer for testing profile
@@ -54,7 +54,7 @@ impl Client {
         Ok(results)
     }
     
-    async fn make_request(&mut self, request: RuntimeRequest) -> Result<RequestResult, Error> {
+    async fn make_request(&mut self, request: RuntimeRequest) -> Result<RequestResult> {
        // build request
          let mut http_request = self.http_client
             .request(request.method.clone(), &request.url)
@@ -85,7 +85,7 @@ impl Client {
         })
     }
 
-    async fn run_next_scenario(&mut self) -> Result<Vec<RequestResult>, Error> {
+    async fn run_next_scenario(&mut self) -> Result<Vec<RequestResult>> {
         let requests: Vec<RuntimeRequest> = self.scenario_pool.get_next_scenario().requests.clone();
 
         let mut results: Vec<RequestResult> = Vec::new();

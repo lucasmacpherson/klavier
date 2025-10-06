@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use anyhow::Error;
+use anyhow::Result;
 use bytes::Bytes;
 
 use http::{HeaderMap, HeaderName, HeaderValue, Method};
@@ -27,7 +27,7 @@ pub struct ScenarioPool {
 }
 
 impl RuntimeRequest {
-    pub fn new(request: Request, base_url: &str) -> Result<Self, Error> {
+    pub fn new(request: Request, base_url: &str) -> Result<Self> {
         let method: Method = request.method.into();
         let url: String = format!("{}{}", base_url, request.path);
 
@@ -46,7 +46,7 @@ impl RuntimeRequest {
 }
 
 impl RuntimeScenario {
-    pub fn new(scenario: Scenario, base_url: &str) -> Result<Self, Error> {
+    pub fn new(scenario: Scenario, base_url: &str) -> Result<Self> {
         let requests = scenario.requests
             .into_iter()
             .map(|request| RuntimeRequest::new(request, base_url))
@@ -57,7 +57,7 @@ impl RuntimeScenario {
 }
 
 impl ScenarioPool {
-    pub fn from_config(config: Arc<Config>) -> Result<Self, Error> {
+    pub fn from_config(config: Arc<Config>) -> Result<Self> {
         let mut scenario_pool: Vec<RuntimeScenario> = Vec::new();
         
         // Create flat weighted distribution of scenarios

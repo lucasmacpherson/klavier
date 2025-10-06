@@ -3,7 +3,7 @@ use std::fs;
 use http::Method;
 use toml;
 use serde::{Deserialize, Serialize};
-use anyhow::{bail, Error};
+use anyhow::{bail, Context, Result};
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Target {
@@ -60,7 +60,7 @@ impl From<HttpMethod> for Method {
 }
 
 impl Config {
-    pub fn validate(&self) -> Result<(), Error> {
+    pub fn validate(&self) -> Result<()> {
         // Validate the base URL is defined correctly
         if self.target.base_url.is_empty() || !self.target.base_url.starts_with("http") {
             bail!("A target base_url must be defined and begin with http:// or https://")
@@ -73,11 +73,12 @@ impl Config {
         Ok(())
     }
 
-    pub fn from_filepath(filepath: &str) -> Result<Config, Error> {
-        let content: String = fs::read_to_string(filepath)?;
-        let config: Config = toml::from_str(&content)?;
+    pub fn from_filepath(filepath: &str) -> Result<Config> {
+        let content: String = fs::read_to_string(filepath)
+            .with_context(|| format!("Failed to read file at {}", filepath))?;
+        let config: Config = toml::from_str(&content)
+            .with_context(|| format!("File at {} is not a valid config! See example.toml", filepath))?;
         config.validate()?;
-
         Ok(config)
     }
 }
