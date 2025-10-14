@@ -71,7 +71,17 @@ impl Client {
         // Start timer for response and send request
         let timestamp = SystemTime::now().duration_since(UNIX_EPOCH)?.as_millis().min(u64::MAX as u128) as u64;
         let start = Instant::now();
-        let response = http_request.send().await?;
+
+        let (status, body) = match http_request.send().await {
+            Ok(response) => {
+                let status = response.status().as_u16();
+                let body = response.text().await
+                    .unwrap_or_else(|e| format!("Failed to parse response body: {}", e));
+                (status, body)
+            }
+            Err(e) => (0, format!("Connection error: {}", e)),
+        };
+
         let duration_ms = start.elapsed().as_millis().min(u64::MAX as u128) as u64;
 
         // TODO Add logic for failed HTTP requests and still return a RequestResult
@@ -80,8 +90,8 @@ impl Client {
         Ok(RequestResult {
             timestamp: timestamp,
             request_url: request.url,
-            status: response.status().as_u16(),
-            body: response.text().await?,
+            status: status,
+            body: body,
             response_time: duration_ms,
         })
     }
