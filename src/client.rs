@@ -2,6 +2,7 @@ use anyhow::Result;
 use reqwest::Client as HttpClient;
 use std::sync::Arc;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
+use std::u64;
 use tokio::time::sleep;
 
 use crate::config::{Config, Timings};
@@ -68,10 +69,10 @@ impl Client {
 
         println!("Sending {} request to {}", &request.method, &request.url);
         // Start timer for response and send request
-        let timestamp = SystemTime::now().duration_since(UNIX_EPOCH)?.as_millis();
+        let timestamp = SystemTime::now().duration_since(UNIX_EPOCH)?.as_millis().min(u64::MAX as u128) as u64;
         let start = Instant::now();
         let response = http_request.send().await?;
-        let duration_ms = start.elapsed().as_millis();
+        let duration_ms = start.elapsed().as_millis().min(u64::MAX as u128) as u64;
 
         // TODO Add logic for failed HTTP requests and still return a RequestResult
         // Important to handle at the function level rather than propagate as the

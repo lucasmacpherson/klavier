@@ -1,7 +1,23 @@
 use anyhow::{Context, Result};
+use polars::frame::DataFrame;
 use std::env;
 
-use klavier::{config::Config, loadtest::LoadTest};
+use klavier::{config::Config, loadtest::LoadTest, results::ProfileResults};
+
+fn print_results(profile_results: &ProfileResults) -> Result<()> {
+    for client_id in 0..profile_results.num_clients() {
+        println!("================================================================");
+        println!("Client {} Results", client_id);
+        for result in profile_results.get_client_results(client_id)? {
+            println!(
+                "- Request: {} | Status: {} | Response Time: {}ms \n  Response body: {}",
+                &result.request_url, &result.status, &result.response_time, &result.body
+            );
+        }
+    }
+
+    Ok(())
+}
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -29,16 +45,10 @@ async fn main() -> Result<()> {
     let test = LoadTest::new(config);
     let results = test.run(client_n).await?;
 
-    for client_id in 0..client_n {
-        println!("================================================================");
-        println!("Client {} Results", client_id);
-        for result in results.get_client_results(client_id)? {
-            println!(
-                "- Request: {} | Status: {} | Response Time: {}ms \n  Response body: {}",
-                &result.request_url, &result.status, &result.response_time, &result.body
-            );
-        }
-    }
+    //(print_results(&results))?;
+    
+    let df: DataFrame = results.into();
+    println!("{}", df);
 
     Ok(())
 }
