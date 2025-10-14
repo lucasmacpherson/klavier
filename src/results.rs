@@ -10,6 +10,7 @@ pub struct RequestResult {
     pub response_time: u64,
 }
 
+#[derive(Debug, Clone)]
 pub struct ProfileResults {
     results: Vec<Vec<RequestResult>>,
 }

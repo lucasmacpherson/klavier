@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
-use polars::frame::DataFrame;
-use std::env;
+use polars::{frame::DataFrame, io::SerWriter, prelude::CsvWriter};
+use std::{env, fs::File};
 
 use klavier::{config::Config, loadtest::LoadTest, results::ProfileResults};
 
@@ -15,6 +15,20 @@ fn print_results(profile_results: &ProfileResults) -> Result<()> {
             );
         }
     }
+
+    Ok(())
+}
+
+fn save_results_to_csv(profile_results: ProfileResults) -> Result<()> {
+    let mut df: DataFrame = profile_results.into();
+
+    let mut file = File::create("latest.csv")?;
+    CsvWriter::new(&mut file)
+        .include_header(true)
+        .with_separator(b',')
+        .with_quote_char(b'"')      // Properly quote strings with commas
+        .with_line_terminator("\r\n".to_string())  // Windows line endings for Excel
+        .finish(&mut df)?;
 
     Ok(())
 }
@@ -46,9 +60,10 @@ async fn main() -> Result<()> {
     let results = test.run(client_n).await?;
 
     //(print_results(&results))?;
-    
+    save_results_to_csv(results.clone())?;
+
     let df: DataFrame = results.into();
-    println!("{}", df);
+    println!("{}", &df);
 
     Ok(())
 }
