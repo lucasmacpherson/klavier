@@ -2,7 +2,7 @@ use anyhow::{Context, Result};
 use polars::{frame::DataFrame, io::SerWriter, prelude::CsvWriter};
 use std::{env, fs::File};
 
-use klavier::{config::Config, loadtest::LoadTest, results::ProfileResults};
+use klavier::{config::Config, loadtest::LoadTest, results::ProfileResults, stats::ProfileStatistics};
 
 fn print_results(profile_results: &ProfileResults) -> Result<()> {
     for client_id in 0..profile_results.num_clients() {
@@ -20,7 +20,8 @@ fn print_results(profile_results: &ProfileResults) -> Result<()> {
 }
 
 fn save_results_to_csv(profile_results: ProfileResults) -> Result<()> {
-    let mut df: DataFrame = profile_results.into();
+    let stats: ProfileStatistics = profile_results.into();
+    let mut df: DataFrame = stats.results;
 
     let mut file = File::create("latest.csv")?;
     CsvWriter::new(&mut file)
@@ -59,11 +60,10 @@ async fn main() -> Result<()> {
     let test = LoadTest::new(config);
     let results = test.run(client_n).await?;
 
-    //(print_results(&results))?;
-    save_results_to_csv(results.clone())?;
+    (print_results(&results))?;
 
-    let df: DataFrame = results.into();
-    println!("{}", &df);
+    let stats: ProfileStatistics = results.into();
+    println!("{}", &stats.results);
 
     Ok(())
 }
