@@ -3,7 +3,8 @@ use std::sync::Arc;
 use anyhow::Result;
 use reqwest::Client as HttpClient;
 
-use crate::{client::Client, config::Config, results::ProfileResults};
+use crate::results::model::ProfileResults;
+use crate::{config::Config, loadtest::client::Client};
 
 fn default_http_client() -> Result<HttpClient> {
     Ok(HttpClient::builder()

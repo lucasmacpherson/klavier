@@ -6,8 +6,8 @@ use std::u64;
 use tokio::time::sleep;
 
 use crate::config::{Config, Timings};
-use crate::results::RequestResult;
-use crate::scenarios::{RuntimeRequest, ScenarioPool};
+use crate::loadtest::scenarios::{RuntimeRequest, ScenarioPool};
+use crate::results::model::RequestResult;
 
 pub struct Client {
     http_client: HttpClient,
@@ -69,13 +69,18 @@ impl Client {
 
         println!("Sending {} request to {}", &request.method, &request.url);
         // Start timer for response and send request
-        let timestamp = SystemTime::now().duration_since(UNIX_EPOCH)?.as_millis().min(u64::MAX as u128) as u64;
+        let timestamp = SystemTime::now()
+            .duration_since(UNIX_EPOCH)?
+            .as_millis()
+            .min(u64::MAX as u128) as u64;
         let start = Instant::now();
 
         let (status, body) = match http_request.send().await {
             Ok(response) => {
                 let status = response.status().as_u16();
-                let body = response.text().await
+                let body = response
+                    .text()
+                    .await
                     .unwrap_or_else(|e| format!("Failed to parse response body: {}", e));
                 (status, body)
             }

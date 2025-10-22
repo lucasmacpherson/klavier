@@ -2,7 +2,10 @@ use anyhow::{Context, Result};
 use polars::{frame::DataFrame, io::SerWriter, prelude::CsvWriter};
 use std::{env, fs::File};
 
-use klavier::{config::Config, loadtest::LoadTest, results::ProfileResults, stats::ProfileStatistics};
+use klavier::config::Config;
+use klavier::loadtest::engine::LoadTest;
+use klavier::results::model::ProfileResults;
+use klavier::results::stats::ProfileStatistics;
 
 fn print_results(profile_results: &ProfileResults) -> Result<()> {
     for client_id in 0..profile_results.num_clients() {
@@ -27,8 +30,8 @@ fn save_results_to_csv(profile_results: ProfileResults) -> Result<()> {
     CsvWriter::new(&mut file)
         .include_header(true)
         .with_separator(b',')
-        .with_quote_char(b'"')      // Properly quote strings with commas
-        .with_line_terminator("\r\n".to_string())  // Windows line endings for Excel
+        .with_quote_char(b'"') // Properly quote strings with commas
+        .with_line_terminator("\r\n".to_string()) // Windows line endings for Excel
         .finish(&mut df)?;
 
     Ok(())
