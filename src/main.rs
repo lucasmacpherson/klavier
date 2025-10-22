@@ -5,7 +5,7 @@ use std::{env, fs::File};
 use klavier::config::Config;
 use klavier::loadtest::engine::LoadTest;
 use klavier::results::model::ProfileResults;
-use klavier::results::stats::ProfileStatistics;
+use klavier::results::stats::ProfileDataFrame;
 
 fn print_results(profile_results: &ProfileResults) -> Result<()> {
     for client_id in 0..profile_results.num_clients() {
@@ -23,7 +23,7 @@ fn print_results(profile_results: &ProfileResults) -> Result<()> {
 }
 
 fn save_results_to_csv(profile_results: ProfileResults) -> Result<()> {
-    let stats: ProfileStatistics = profile_results.into();
+    let stats: ProfileDataFrame = profile_results.into();
     let mut df: DataFrame = stats.results;
 
     let mut file = File::create("latest.csv")?;
@@ -65,7 +65,7 @@ async fn main() -> Result<()> {
 
     (print_results(&results))?;
 
-    let stats: ProfileStatistics = results.into();
+    let stats: ProfileDataFrame = results.into();
     println!("{}", &stats.results);
 
     Ok(())

@@ -2,13 +2,13 @@ use polars::{df, frame::DataFrame};
 
 use crate::results::model::ProfileResults;
 
-pub struct ProfileStatistics {
+pub struct ProfileDataFrame {
     pub results: DataFrame,
 }
 
-impl ProfileStatistics {}
+impl ProfileDataFrame {}
 
-impl From<ProfileResults> for ProfileStatistics {
+impl From<ProfileResults> for ProfileDataFrame {
     fn from(profile_results: ProfileResults) -> Self {
         let total_rows = profile_results
             .get_all_results()
@@ -51,6 +51,6 @@ impl From<ProfileResults> for ProfileStatistics {
         )
         .unwrap();
 
-        ProfileStatistics { results: df }
+        ProfileDataFrame { results: df }
     }
 }

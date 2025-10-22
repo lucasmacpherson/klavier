@@ -1,2 +1,3 @@
 pub mod model;
-pub mod stats;
+pub mod statistics;
+pub mod wrapper;
