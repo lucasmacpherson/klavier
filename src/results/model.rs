@@ -1,5 +1,7 @@
 use anyhow::{Context, Result};
 
+pub type ResultMatrix = Vec<Vec<RequestResult>>;
+
 #[derive(Debug, Clone)]
 pub struct RequestResult {
     pub timestamp: u64,
@@ -11,7 +13,7 @@ pub struct RequestResult {
 
 #[derive(Debug, Clone)]
 pub struct ProfileResults {
-    results: Vec<Vec<RequestResult>>,
+    results: ResultMatrix,
 }
 
 impl ProfileResults {
@@ -35,7 +37,7 @@ impl ProfileResults {
             .context("Client index out of bounds")
     }
 
-    pub fn get_all_results(&self) -> &Vec<Vec<RequestResult>> {
+    pub fn get_all_results(&self) -> &ResultMatrix {
         &self.results
     }
 }

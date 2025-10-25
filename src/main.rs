@@ -1,11 +1,12 @@
 use anyhow::{Context, Result};
+use klavier::results::statistics::ProfileStatistics;
 use polars::{frame::DataFrame, io::SerWriter, prelude::CsvWriter};
 use std::{env, fs::File};
 
 use klavier::config::Config;
 use klavier::loadtest::engine::LoadTest;
 use klavier::results::model::ProfileResults;
-use klavier::results::stats::ProfileDataFrame;
+use klavier::results::wrapper::ProfileDataFrame;
 
 fn print_results(profile_results: &ProfileResults) -> Result<()> {
     for client_id in 0..profile_results.num_clients() {
@@ -37,6 +38,18 @@ fn save_results_to_csv(profile_results: ProfileResults) -> Result<()> {
     Ok(())
 }
 
+fn print_request_statistics(profile_stats: ProfileStatistics) {
+    for (request_url, stats) in profile_stats.get_request_statistics().iter() {
+        println!("================================================================");
+        println!("Endpoint: {} ({} requests)", request_url, stats.request_count());
+        println!("Avg Response Time: {}ms", stats.avg_response_time());
+        println!("Status Codes:");
+        for (code, rate) in stats.status_rates() {
+            println!("- HTTP {} -> {}%", code, rate * 100 as f64)
+        }
+    }
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
     let args: Vec<String> = env::args().collect();
@@ -63,10 +76,8 @@ async fn main() -> Result<()> {
     let test = LoadTest::new(config);
     let results = test.run(client_n).await?;
 
-    (print_results(&results))?;
-
-    let stats: ProfileDataFrame = results.into();
-    println!("{}", &stats.results);
+    let statistics: ProfileStatistics = results.into();
+    print_request_statistics(statistics);
 
     Ok(())
 }
