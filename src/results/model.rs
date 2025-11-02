@@ -40,4 +40,12 @@ impl ProfileResults {
     pub fn get_all_results(&self) -> &ResultMatrix {
         &self.results
     }
+
+    pub fn total_request_count(&self) -> usize {
+        let mut count = 0;
+        for client_results in &self.results {
+            count += client_results.len();
+        }
+        count
+    }
 }

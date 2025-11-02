@@ -1,6 +1,9 @@
-use std::collections::{hash_map::Entry::{Occupied, Vacant}, HashMap};
+use std::collections::{
+    HashMap,
+    hash_map::Entry::{Occupied, Vacant},
+};
 
-use crate::results::model::{ResultMatrix, ProfileResults};
+use crate::results::model::{ProfileResults, ResultMatrix};
 
 pub struct RequestStatistics {
     pub request_count: u64,
@@ -9,30 +12,30 @@ pub struct RequestStatistics {
 }
 
 pub struct ProfileStatistics {
-   requests: HashMap<String, RequestStatistics>, 
-   // TODO Add clients hashmap for grouping request response stats by client
+    requests: HashMap<String, RequestStatistics>,
+    // TODO Add clients hashmap for grouping request response stats by client
 }
 
 fn calculate_request_statistics(results: &ResultMatrix) -> HashMap<String, RequestStatistics> {
-   let results_flat = results.into_iter().flatten();
-   let mut request_map: HashMap<String, RequestStatistics> = HashMap::new();
+    let results_flat = results.into_iter().flatten();
+    let mut request_map: HashMap<String, RequestStatistics> = HashMap::new();
 
-   for result in results_flat {
-       let request_url = result.request_url.clone();
+    for result in results_flat {
+        let request_url = result.request_url.clone();
 
-       match request_map.entry(request_url) {
-           Occupied(mut request_entry) => {
-               let statistic = request_entry.get_mut();
-               statistic.update(result.response_time, result.status);
-           },
-           Vacant(entry) => {
-               let statistic = entry.insert(RequestStatistics::new());
-               statistic.update(result.response_time, result.status);
-           }
-       }
+        match request_map.entry(request_url) {
+            Occupied(mut request_entry) => {
+                let statistic = request_entry.get_mut();
+                statistic.update(result.response_time, result.status);
+            }
+            Vacant(entry) => {
+                let statistic = entry.insert(RequestStatistics::new());
+                statistic.update(result.response_time, result.status);
+            }
+        }
     }
 
-   request_map
+    request_map
 }
 
 impl RequestStatistics {
@@ -52,10 +55,10 @@ impl RequestStatistics {
             Occupied(count) => {
                 let new_count = count.get() + 1;
                 self.statuses.insert(status, new_count);
-            },
+            }
             Vacant(_) => {
-                self.statuses.insert(status, 1);   
-            },
+                self.statuses.insert(status, 1);
+            }
         }
     }
 
@@ -70,7 +73,10 @@ impl RequestStatistics {
     pub fn status_rates(&self) -> HashMap<u16, f64> {
         let mut rates: HashMap<u16, f64> = HashMap::new();
         for (status, count) in self.statuses.iter() {
-            rates.insert(status.clone(), count.clone() as f64 / self.request_count as f64);
+            rates.insert(
+                status.clone(),
+                count.clone() as f64 / self.request_count as f64,
+            );
         }
 
         rates
@@ -84,11 +90,9 @@ impl ProfileStatistics {
 }
 
 impl From<ProfileResults> for ProfileStatistics {
-   fn from(profile_results: ProfileResults) -> Self {
-       let results_matrix = profile_results.get_all_results();
-       let requests = calculate_request_statistics(results_matrix);
-       Self {
-           requests,
-       }
-   } 
+    fn from(profile_results: ProfileResults) -> Self {
+        let results_matrix = profile_results.get_all_results();
+        let requests = calculate_request_statistics(results_matrix);
+        Self { requests }
+    }
 }

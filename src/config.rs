@@ -60,6 +60,19 @@ impl From<HttpMethod> for Method {
 }
 
 impl Config {
+    pub fn new(filepath: &str) -> Result<Config> {
+        let content: String = fs::read_to_string(filepath)
+            .with_context(|| format!("Failed to read file at {}", filepath))?;
+        let config: Config = toml::from_str(&content).with_context(|| {
+            format!(
+                "File at {} is not a valid config! See example.toml",
+                filepath
+            )
+        })?;
+        config.validate()?;
+        Ok(config)
+    }
+
     pub fn validate(&self) -> Result<()> {
         // Validate the base URL is defined correctly
         if self.target.base_url.is_empty() || !self.target.base_url.starts_with("http") {
@@ -71,18 +84,5 @@ impl Config {
             bail!("At least one scenario must be defined")
         }
         Ok(())
-    }
-
-    pub fn from_filepath(filepath: &str) -> Result<Config> {
-        let content: String = fs::read_to_string(filepath)
-            .with_context(|| format!("Failed to read file at {}", filepath))?;
-        let config: Config = toml::from_str(&content).with_context(|| {
-            format!(
-                "File at {} is not a valid config! See example.toml",
-                filepath
-            )
-        })?;
-        config.validate()?;
-        Ok(config)
     }
 }

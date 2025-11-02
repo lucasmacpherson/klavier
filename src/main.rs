@@ -1,80 +1,64 @@
 use anyhow::{Context, Result};
-use klavier::results::statistics::ProfileStatistics;
-use polars::{frame::DataFrame, io::SerWriter, prelude::CsvWriter};
-use std::{env, fs::File};
-
-use klavier::config::Config;
+use klavier::{config::Config, results::output::get_header_string};
 use klavier::loadtest::engine::LoadTest;
 use klavier::results::model::ProfileResults;
-use klavier::results::wrapper::ProfileDataFrame;
+use klavier::results::output::print_request_statistics;
+use klavier::results::statistics::ProfileStatistics;
+use std::{env, usize};
 
-fn print_results(profile_results: &ProfileResults) -> Result<()> {
-    for client_id in 0..profile_results.num_clients() {
-        println!("================================================================");
-        println!("Client {} Results", client_id);
-        for result in profile_results.get_client_results(client_id)? {
-            println!(
-                "- Request: {} | Status: {} | Response Time: {}ms \n  Response body: {}",
-                &result.request_url, &result.status, &result.response_time, &result.body
-            );
-        }
-    }
-
-    Ok(())
+struct Arguments {
+    // TODO Find more idiomatic method for returning Result<Arguments> than
+    // this basic data structure - should probably just use crate which
+    // includes flag handling.
+    pub config_path: String,
+    pub client_n: usize,
 }
 
-fn save_results_to_csv(profile_results: ProfileResults) -> Result<()> {
-    let stats: ProfileDataFrame = profile_results.into();
-    let mut df: DataFrame = stats.results;
-
-    let mut file = File::create("latest.csv")?;
-    CsvWriter::new(&mut file)
-        .include_header(true)
-        .with_separator(b',')
-        .with_quote_char(b'"') // Properly quote strings with commas
-        .with_line_terminator("\r\n".to_string()) // Windows line endings for Excel
-        .finish(&mut df)?;
-
-    Ok(())
-}
-
-fn print_request_statistics(profile_stats: ProfileStatistics) {
-    for (request_url, stats) in profile_stats.get_request_statistics().iter() {
-        println!("================================================================");
-        println!("Endpoint: {} ({} requests)", request_url, stats.request_count());
-        println!("Avg Response Time: {}ms", stats.avg_response_time());
-        println!("Status Codes:");
-        for (code, rate) in stats.status_rates() {
-            println!("- HTTP {} -> {}%", code, rate * 100 as f64)
-        }
-    }
-}
-
-#[tokio::main]
-async fn main() -> Result<()> {
-    let args: Vec<String> = env::args().collect();
+fn parse_args(args: Vec<String>) -> Result<Arguments> {
     let config_path = args
         .get(1)
-        .context(format!("Usage: {} <config-path> [num-clients]", args[0]))?;
+        .context(format!("Usage: {} <config-path> [num-clients]", args[0]))?
+        .to_string();
 
     let client_n = args
         .get(2)
         .and_then(|s| s.parse::<usize>().ok())
         .unwrap_or(1);
 
-    let config = Config::from_filepath(config_path)?;
-    let base_url = &config.target.base_url;
+    Ok(Arguments { config_path, client_n })
+}
+
+fn load_config(filepath: &str) -> Result<Config> {
+    let config = Config::new(filepath)?;
     println!(
         "Loaded config \"{}\" with target URL \"{}\"",
-        &args[1], base_url
+        filepath, &config.target.base_url
     );
 
+    Ok(config)
+}
+
+async fn run_loadtest(config: Config, client_n: usize) -> Result<ProfileResults> {
     println!(
         "Running test with {} clients for {} seconds...",
         client_n, config.timings.test_duration_seconds
     );
+
     let test = LoadTest::new(config);
     let results = test.run(client_n).await?;
+
+    println!(
+        "{}\nTest complete \n", get_header_string()
+    );
+    Ok(results)
+}
+
+#[tokio::main]
+async fn main() -> Result<()> {
+    let args = parse_args(env::args().collect())?;
+    let config = load_config(&args.config_path)?;
+
+    let results = run_loadtest(config, args.client_n).await?;
 
     let statistics: ProfileStatistics = results.into();
     print_request_statistics(statistics);
