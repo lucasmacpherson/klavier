@@ -6,24 +6,7 @@ use klavier::results::output::print_request_statistics;
 use klavier::results::statistics::ProfileStatistics;
 use std::{env, usize};
 
-struct Arguments {
-    // TODO Find more idiomatic method for returning Result<Arguments> than
-    // this basic data structure - should probably just use crate which
-    // includes flag handling.
-    pub config_path: String,
-    pub client_n: usize,
-}
-
 fn parse_args(args: Vec<String>) -> Result<Arguments> {
-    let config_path = args
-        .get(1)
-        .context(format!("Usage: {} <config-path> [num-clients]", args[0]))?
-        .to_string();
-
-    let client_n = args
-        .get(2)
-        .and_then(|s| s.parse::<usize>().ok())
-        .unwrap_or(1);
 
     Ok(Arguments { config_path, client_n })
 }
