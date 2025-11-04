@@ -41,7 +41,7 @@ async fn run_loadtest(config: Config, client_n: usize) -> Result<ProfileResults>
     let results = test.run(client_n).await?;
 
     println!(
-        "{}\nTest complete \n", get_header_string()
+        "{} \n\nTest complete \n", get_header_string()
     );
     Ok(results)
 }

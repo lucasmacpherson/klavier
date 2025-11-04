@@ -87,6 +87,18 @@ impl ProfileStatistics {
     pub fn get_request_statistics(&self) -> &HashMap<String, RequestStatistics> {
         &self.requests
     }
+
+    pub fn get_combined_avg_response_time(&self) -> u64 {
+        let mut combined_total = 0;
+        let mut combined_count = 0;
+
+        for stat in self.requests.values() {
+            combined_total += stat.total_response_time;
+            combined_count += stat.request_count;
+        }
+
+        combined_total / combined_count
+    }
 }
 
 impl From<ProfileResults> for ProfileStatistics {
