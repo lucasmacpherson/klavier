@@ -1,14 +1,24 @@
-use anyhow::{Context, Result};
+use anyhow::Result;
+use clap::Parser;
 use klavier::{config::Config, results::output::get_header_string};
 use klavier::loadtest::engine::LoadTest;
 use klavier::results::model::ProfileResults;
-use klavier::results::output::print_request_statistics;
+use klavier::results::output::{print_request_statistics, save_results_to_csv};
 use klavier::results::statistics::ProfileStatistics;
-use std::{env, usize};
 
-fn parse_args(args: Vec<String>) -> Result<Arguments> {
-
-    Ok(Arguments { config_path, client_n })
+#[derive(Parser, Debug)]
+pub struct Arguments {
+    /// Path to valid test profile TOML file
+    pub config_path: String,
+    /// Number of parallel clients
+    #[arg(default_value = "1")]
+    pub client_n: usize,
+    /// Path to CSV file to output all response results
+    #[arg(short, long, default_value = None)]
+    pub results_out: Option<String>,
+    /// Path to CSV file to output response statistics
+    #[arg(short, long, default_value = None)]
+    pub stats_out: Option<String>,
 }
 
 fn load_config(filepath: &str) -> Result<Config> {
@@ -38,10 +48,14 @@ async fn run_loadtest(config: Config, client_n: usize) -> Result<ProfileResults>
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let args = parse_args(env::args().collect())?;
+    let args = Arguments::parse();
     let config = load_config(&args.config_path)?;
 
     let results = run_loadtest(config, args.client_n).await?;
+    
+    if let Some(results_out) = args.results_out {
+        save_results_to_csv(results.clone(), results_out)?;
+    }
 
     let statistics: ProfileStatistics = results.into();
     print_request_statistics(statistics);

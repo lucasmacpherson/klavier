@@ -24,11 +24,11 @@ pub fn print_results(profile_results: &ProfileResults) -> Result<()> {
     Ok(())
 }
 
-pub fn save_results_to_csv(profile_results: ProfileResults) -> Result<()> {
+pub fn save_results_to_csv(profile_results: ProfileResults, filepath: String) -> Result<()> {
     let stats: ProfileDataFrame = profile_results.into();
     let mut df: DataFrame = stats.results;
 
-    let mut file = File::create("latest.csv")?;
+    let mut file = File::create(filepath)?;
     CsvWriter::new(&mut file)
         .include_header(true)
         .with_separator(b',')
@@ -53,4 +53,8 @@ pub fn print_request_statistics(profile_stats: ProfileStatistics) {
             println!("- HTTP {} -> {}%", code, rate * 100 as f64)
         }
     }
+}
+
+pub fn save_request_statistics_to_csv(profile_stats: ProfileStatistics, filepath: String) {
+    
 }
