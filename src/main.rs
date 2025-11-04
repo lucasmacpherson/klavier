@@ -1,10 +1,10 @@
 use anyhow::Result;
 use clap::Parser;
-use klavier::{config::Config, results::output::get_header_string};
 use klavier::loadtest::engine::LoadTest;
 use klavier::results::model::ProfileResults;
 use klavier::results::output::{print_request_statistics, save_results_to_csv};
 use klavier::results::statistics::ProfileStatistics;
+use klavier::{config::Config, results::output::get_header_string};
 
 #[derive(Parser, Debug)]
 pub struct Arguments {
@@ -40,9 +40,7 @@ async fn run_loadtest(config: Config, client_n: usize) -> Result<ProfileResults>
     let test = LoadTest::new(config);
     let results = test.run(client_n).await?;
 
-    println!(
-        "{} \n\nTest complete \n", get_header_string()
-    );
+    println!("{} \n\nTest complete \n", get_header_string());
     Ok(results)
 }
 
@@ -52,7 +50,7 @@ async fn main() -> Result<()> {
     let config = load_config(&args.config_path)?;
 
     let results = run_loadtest(config, args.client_n).await?;
-    
+
     if let Some(results_out) = args.results_out {
         save_results_to_csv(results.clone(), results_out)?;
     }

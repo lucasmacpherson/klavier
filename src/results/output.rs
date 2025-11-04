@@ -1,6 +1,6 @@
-use crate::results::wrapper::ProfileDataFrame;
-use crate::results::statistics::ProfileStatistics;
 use crate::results::model::ProfileResults;
+use crate::results::statistics::ProfileStatistics;
+use crate::results::wrapper::ProfileDataFrame;
 use anyhow::Result;
 use polars::{frame::DataFrame, io::SerWriter, prelude::CsvWriter};
 use std::fs::File;
@@ -53,9 +53,10 @@ pub fn print_request_statistics(profile_stats: ProfileStatistics) {
             println!("- HTTP {} -> {}%", code, rate * 100 as f64)
         }
     }
-    println!("Combined Average Response Time (All Requests): {}", profile_stats.get_combined_avg_response_time());
+    println!(
+        "Combined Average Response Time (All Requests): {}",
+        profile_stats.get_combined_avg_response_time()
+    );
 }
 
-pub fn save_request_statistics_to_csv(profile_stats: ProfileStatistics, filepath: String) {
-    
-}
+pub fn save_request_statistics_to_csv(profile_stats: ProfileStatistics, filepath: String) {}

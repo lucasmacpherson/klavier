@@ -89,9 +89,6 @@ impl Client {
 
         let duration_ms = start.elapsed().as_millis().min(u64::MAX as u128) as u64;
 
-        // TODO Add logic for failed HTTP requests and still return a RequestResult
-        // Important to handle at the function level rather than propagate as the
-        // test should proceed even if a single request fails entirely
         Ok(RequestResult {
             timestamp: timestamp,
             request_url: request.url,
