@@ -24,7 +24,7 @@ pub struct Request {
     pub method: HttpMethod,
     pub path: String,
     #[serde(default)]
-    pub headers: HashMap<String, String>,
+    pub headers: Option<HashMap<String, String>>,
     pub body: Option<String>,
 }
 

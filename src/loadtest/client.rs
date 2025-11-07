@@ -63,8 +63,8 @@ impl Client {
             .request(request.method.clone(), &request.url)
             .headers(request.headers.clone());
 
-        if let Some(body_bytes) = &request.body {
-            http_request = http_request.body(body_bytes.clone())
+        if let Some(body_bytes) = request.body {
+            http_request = http_request.body(body_bytes)
         }
 
         println!("Sending {} request to {}", &request.method, &request.url);
