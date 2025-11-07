@@ -83,11 +83,13 @@ impl Config {
         if self.scenarios.is_empty() {
             bail!("At least one scenario must be defined")
         }
-        
+
         // Scenario pool uses duplicate references stored in a Vec for O(1) selection
         // Therefore weight must be bounded to prevent excessive memory usage
         if self.scenarios.values().all(|s| s.weight < 1e5 as u64) {
-            bail!("Scenario weight cannot be greater than 100,000 due to reference pool implementation")
+            bail!(
+                "Scenario weight cannot be greater than 100,000 due to reference pool implementation"
+            )
         }
         Ok(())
     }

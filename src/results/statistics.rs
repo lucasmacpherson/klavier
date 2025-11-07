@@ -1,7 +1,4 @@
-use std::collections::{
-    HashMap,
-    hash_map::Entry::{Occupied, Vacant},
-};
+use std::collections::{hash_map::Entry::{Occupied, Vacant}, BTreeSet, HashMap};
 
 use crate::results::model::{ProfileResults, ResultMatrix};
 
@@ -92,12 +89,19 @@ impl ProfileStatistics {
         let mut combined_total = 0;
         let mut combined_count = 0;
 
-        for stat in self.requests.values() {
-            combined_total += stat.total_response_time;
-            combined_count += stat.request_count;
+        for request in self.requests.values() {
+            combined_total += request.total_response_time;
+            combined_count += request.request_count;
         }
 
         combined_total / combined_count
+    }
+
+    pub fn get_present_status_codes(&self) -> BTreeSet<u16> {
+        self.requests.values()
+            .flat_map(|statistic| statistic.statuses.keys())
+            .copied()
+            .collect()
     }
 }
 

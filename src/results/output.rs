@@ -2,6 +2,7 @@ use crate::results::model::ProfileResults;
 use crate::results::statistics::ProfileStatistics;
 use crate::results::wrapper::ProfileDataFrame;
 use anyhow::Result;
+use csv::Writer;
 use polars::{frame::DataFrame, io::SerWriter, prelude::CsvWriter};
 use std::fs::File;
 
@@ -59,4 +60,11 @@ pub fn print_request_statistics(profile_stats: ProfileStatistics) {
     );
 }
 
-pub fn save_request_statistics_to_csv(profile_stats: ProfileStatistics, filepath: String) {}
+pub fn save_request_statistics_to_csv(profile_stats: ProfileStatistics, filepath: String) -> Result<()> {
+    let mut wtr = Writer::from_path(filepath)?;
+    for (request_url, stats) in profile_stats.get_request_statistics().iter() {
+        
+    }
+
+    Ok(())
+}
