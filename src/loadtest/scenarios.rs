@@ -67,6 +67,8 @@ impl RuntimeScenario {
 }
 
 impl ScenarioPool {
+    // TODO !! Store unique scenarios in HashSet and built weighted pool of pointers
+    // Don't clone! Why the hell did we do this...
     pub fn from_config(config: Arc<Config>) -> Result<Self> {
         let mut scenario_pool: Vec<RuntimeScenario> = Vec::new();
 

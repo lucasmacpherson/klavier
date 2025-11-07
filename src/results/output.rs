@@ -63,7 +63,9 @@ pub fn print_request_statistics(profile_stats: ProfileStatistics) {
 pub fn save_request_statistics_to_csv(profile_stats: ProfileStatistics, filepath: String) -> Result<()> {
     let mut wtr = Writer::from_path(filepath)?;
     for (request_url, stats) in profile_stats.get_request_statistics().iter() {
-        
+        // TODO Preface with column headings then write each request's statistics
+        // Ensure present status codes are populated with 0 if none occured for
+        // a particular request
     }
 
     Ok(())
